@@ -4,12 +4,9 @@
     {
         static void Main(string[] args)
         {
-            // Program.cs — Laboratorio 03: validación del producto y menú inicial
-            // Las instrucciones se ejecutan de arriba hacia abajo.
+            Console.WriteLine("=== Registro de productos ===");
 
-            Console.WriteLine("=== Registro de producto ===");
 
-            // Paso 1 — Capturar y validar los datos con TryParse
             Console.Write("Código del producto: ");
 
             int codigo = int.Parse(Console.ReadLine());
@@ -21,6 +18,14 @@
                 Console.WriteLine("Error: el nombre del producto no puede estar vacío.");
                 return;
             }
+            nombre = nombre.Trim();
+            string nombrenormalizado = nombre.ToUpper();
+            Console.WriteLine($"Nombre Guardado Como: {nombrenormalizado}");
+
+            int nPrejijo = Math.Min(3, nombrenormalizado.Length);
+            string prefijo = nombrenormalizado.Substring(0, nPrejijo);
+            string codigogenerado = $"{prefijo}-{nombrenormalizado.Length:D2}";
+            Console.WriteLine($"codigo generado {codigogenerado}");
 
             Console.Write("Precio unitario (Q): ");
             bool precioOk = decimal.TryParse(Console.ReadLine(), out decimal precio);
@@ -40,7 +45,7 @@
 
             Console.WriteLine("Producto válido. ¡Datos aceptados!");
 
-            // Paso 2 — Clasificar el stock con if / else if / else
+
             string estado;
             if (cantidad == 0)
                 estado = "AGOTADO";
@@ -55,12 +60,26 @@
             Console.WriteLine();
             Console.WriteLine("--- Ficha del producto ---");
             Console.WriteLine($"Código   : {codigo}");
+            Console.WriteLine($"Codigo Generado {codigogenerado}");
             Console.WriteLine($"Producto : {nombre}");
             Console.WriteLine($"Precio   : Q {precio:N2}");
             Console.WriteLine($"Cantidad : {cantidad}");
             Console.WriteLine($"Estado   : {estado}");
             Console.WriteLine($"Valor en inventario: Q {valorTotal:N2}");
             Console.WriteLine($"Faltante para stock objetivo (50): {faltante}");
+
+            Console.Write("Buscar Texto En El Nombre: ");
+            string termino = Console.ReadLine().Trim().ToUpper();
+            bool coincide = nombrenormalizado.Contains(termino);
+            Console.WriteLine(coincide
+                ? $"Coincidencia Encontrada: '{nombrenormalizado}' contiene '{termino}'"
+                : $"Sin Coincidencia '{nombrenormalizado}' no contiene '{termino}'");
+
+            decimal precioConIva = precio * 1.12m;
+            int sueltas = cantidad % 6;
+            Console.WriteLine(
+                $"Precio Con IVA: {precioConIva}," +
+                $" Unidades sueltas (Cajas de 6) {sueltas}");
 
             string opcion;
             int totalproductos = 0;
@@ -96,8 +115,6 @@
 
             }
             while (opcion != "3");
-            // Paso 4 — Probar errores: ejecuta de nuevo con precio "abc",
-            // precio 0 o cantidad negativa y confirma que el programa NO se cae.
         }
     }
 }
