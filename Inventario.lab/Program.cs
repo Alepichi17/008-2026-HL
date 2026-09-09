@@ -4,117 +4,121 @@
     {
         static void Main(string[] args)
         {
-            Console.WriteLine("=== Registro de productos ===");
-
-
-            Console.Write("Código del producto: ");
-
-            int codigo = int.Parse(Console.ReadLine());
-
-            Console.Write("Nombre del producto: ");
-            string nombre = Console.ReadLine();
-            if (string.IsNullOrWhiteSpace(nombre))
-            {
-                Console.WriteLine("Error: el nombre del producto no puede estar vacío.");
-                return;
-            }
-            nombre = nombre.Trim();
-            string nombrenormalizado = nombre.ToUpper();
-            Console.WriteLine($"Nombre Guardado Como: {nombrenormalizado}");
-
-            int nPrejijo = Math.Min(3, nombrenormalizado.Length);
-            string prefijo = nombrenormalizado.Substring(0, nPrejijo);
-            string codigogenerado = $"{prefijo}-{nombrenormalizado.Length:D2}";
-            Console.WriteLine($"codigo generado {codigogenerado}");
-
-            Console.Write("Precio unitario (Q): ");
-            bool precioOk = decimal.TryParse(Console.ReadLine(), out decimal precio);
-            if (!precioOk || precio <= 0)
-            {
-                Console.WriteLine("Error: el precio debe ser un número mayor que cero.");
-                return;
-            }
-
-            Console.Write("Cantidad en existencia: ");
-            bool cantOk = int.TryParse(Console.ReadLine(), out int cantidad);
-            if (!cantOk || cantidad < 0)
-            {
-                Console.WriteLine("Error: la cantidad debe ser un entero no negativo.");
-                return;
-            }
-
-            Console.WriteLine("Producto válido. ¡Datos aceptados!");
-
-
-            string estado;
-            if (cantidad == 0)
-                estado = "AGOTADO";
-            else if (cantidad < 10)
-                estado = "STOCK BAJO";
-            else
-                estado = "DISPONIBLE";
-
-            decimal valorTotal = precio * cantidad;
-            int faltante = 50 - cantidad;
-
-            Console.WriteLine();
-            Console.WriteLine("--- Ficha del producto ---");
-            Console.WriteLine($"Código   : {codigo}");
-            Console.WriteLine($"Codigo Generado {codigogenerado}");
-            Console.WriteLine($"Producto : {nombre}");
-            Console.WriteLine($"Precio   : Q {precio:N2}");
-            Console.WriteLine($"Cantidad : {cantidad}");
-            Console.WriteLine($"Estado   : {estado}");
-            Console.WriteLine($"Valor en inventario: Q {valorTotal:N2}");
-            Console.WriteLine($"Faltante para stock objetivo (50): {faltante}");
-
-            Console.Write("Buscar Texto En El Nombre: ");
-            string termino = Console.ReadLine().Trim().ToUpper();
-            bool coincide = nombrenormalizado.Contains(termino);
-            Console.WriteLine(coincide
-                ? $"Coincidencia Encontrada: '{nombrenormalizado}' contiene '{termino}'"
-                : $"Sin Coincidencia '{nombrenormalizado}' no contiene '{termino}'");
-
-            decimal precioConIva = precio * 1.12m;
-            int sueltas = cantidad % 6;
-            Console.WriteLine(
-                $"Precio Con IVA: {precioConIva}," +
-                $" Unidades sueltas (Cajas de 6) {sueltas}");
-
+            
             string opcion;
-            int totalproductos = 0;
+            List<string> nombres = new List<string>();
+            List<decimal> precios = new List<decimal>();
+            List<int> cantidades = new List<int>();
+
             do
             {
-
-
-                Console.WriteLine();
-                Console.WriteLine("=== MENÚ INVENTARIO ===");
-                Console.WriteLine("1. Agregar producto");
-                Console.WriteLine("2. Ver Total de Productos");
-                Console.WriteLine("3. Salir");
-                Console.Write("Elige una opción: ");
-                opcion = Console.ReadLine();
-
+                
+                opcion = LeerOpcionMenu();
 
                 switch (opcion)
                 {
                     case "1":
-                        totalproductos++;
-                        Console.WriteLine($" producto Agregado. Total: {totalproductos}");
+                        AgregarProducto(nombres, precios, cantidades);
                         break;
                     case "2":
-                        Console.WriteLine($"Tienes {totalproductos} productos(s) registrados.");
+                        ListarProductos(nombres, precios, cantidades);
                         break;
                     case "3":
-                        Console.WriteLine("Saliendo...");
+                        BuscarProducto(nombres, precios, cantidades);
+                        break;
+                    case "4":
+                        Console.WriteLine("Saliendo del sistema...");
                         break;
                     default:
-                        Console.WriteLine("Opción no válida.");
+                        Console.WriteLine("Opción no válida, intenta de nuevo.");
                         break;
                 }
-
             }
-            while (opcion != "3");
+            while (opcion != "4");
         }
+
+           
+
+        public static string LeerOpcionMenu()
+        {
+            Console.WriteLine();
+            Console.WriteLine("=== MENÚ INVENTARIO ===");
+            Console.WriteLine("1. Agregar producto");
+            Console.WriteLine("2. Listar productos");
+            Console.WriteLine("3. Buscar producto");
+            Console.WriteLine("4. Salir");
+            Console.Write("Elige una opción: ");
+            return Console.ReadLine();
+            
+
+        }
+
+        private static void AgregarProducto(List<string> nombres, List<decimal> precios, List<int> cantidades)
+        {
+            Console.WriteLine();
+            Console.Write("Nombre: ");
+            string nombreProducto = Console.ReadLine().Trim(); 
+            Console.Write("Precio: ");
+            bool precioOk = decimal.TryParse(Console.ReadLine(), out decimal PrecioProducto);
+            Console.Write("Cantidad: ");
+            bool CantidadOk = int.TryParse(Console.ReadLine(), out int CantidadProducto);
+
+            if (precioOk && PrecioProducto > 0 && CantidadOk && CantidadProducto > 0 && !string.IsNullOrWhiteSpace(nombreProducto))
+            {
+                nombres.Add(nombreProducto);
+                precios.Add(PrecioProducto);
+                cantidades.Add(CantidadProducto);
+                Console.WriteLine("Producto Agregado");
+            }
+            else
+            {
+                Console.WriteLine("Datos Invalidos");
+            }
+
+        }
+
+        private static void ListarProductos(List<string> nombres, List<decimal> precios, List<int> cantidades)
+        {
+            if (nombres.Count == 0)
+            {
+                Console.WriteLine();
+                Console.WriteLine("No hay productos.");
+                return;
+            }
+            Console.WriteLine($"{"N.",2} {"Nombre",-20} {"Precio",10} {"Cant.",5} {"Total",13}");
+            for (int i = 0; i < nombres.Count; i++)
+            {
+                decimal valorLinea = CalcularValorTotal(precios[i], cantidades[i]);
+                Console.WriteLine($"{i + 1, -2} {nombres[i], -20} {"Q",1} {"Q"+precios[i],10:N2} {cantidades[i], 5} Q{valorLinea, 13:N2}");
+            }
+        }
+
+        private static void BuscarProducto(List<string> nombres, List<decimal> precios, List<int> cantidades)
+        {
+            Console.Write("Texto a buscar: ");
+            string t = Console.ReadLine().Trim().ToUpper();
+            bool encontrado = false;
+            for (int i = 0; i < nombres.Count; i++)
+            {
+                if (nombres[i].ToUpper().Contains(t))
+                {
+                    Console.WriteLine();
+                    Console.WriteLine($"- {nombres[i]} (Q {precios[i]:N2})");
+                    encontrado = true;
+                }
+            }
+            if (!encontrado)
+            {
+                Console.WriteLine();
+                Console.WriteLine("Sin coincidencias");
+            }
+        }
+        private static decimal  CalcularValorTotal(decimal precio, int cantidad)
+        {
+            return precio * cantidad;
+        }
+
+       
+
     }
 }
